@@ -1,26 +1,15 @@
-using EmailSenderApp.Application;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddControllers();
-
-builder.Services.AddApplication();
-
-
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-
-
-
-
-// bu swagger uchun
-
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Lesson Auth", Version = "v1.0.0", Description = "Lesson Auth API" });
@@ -46,6 +35,8 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 
+builder.Services.AddAplication();
+builder.Services.AddInfrastruction(builder.Configuration);
 
 
 
@@ -92,13 +83,10 @@ static TokenValidationParameters GetTokenValidationParameters(IConfiguration con
 
 
 
-
 var app = builder.Build();
 
-
-
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
+if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
@@ -106,10 +94,9 @@ if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 
 app.UseHttpsRedirection();
 
-app.UseAuthentication();
-
 app.UseAuthorization();
 
 app.MapControllers();
 
 app.Run();
+

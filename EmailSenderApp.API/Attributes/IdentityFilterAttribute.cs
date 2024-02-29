@@ -10,13 +10,15 @@ namespace EmailSenderApp.API.Attributes
     public class IdentityFilterAttribute : Attribute, IAuthorizationFilter
     {
         private readonly int _permissionId;
-        public IdentityFilterAttribute(Permission permission)
+
+        public IdentityFilterAttribute(Permission permissionId)
         {
-            _permissionId = (int)permission;
+            _permissionId = (int)permissionId;
         }
-        public void OnAuthorization(AuthorizationFilterContext context)
+
+        public async void OnAuthorization(AuthorizationFilterContext context)
         {
-            var identity  = context.HttpContext.User.Identity as ClaimsIdentity;
+            var identity = context.HttpContext.User.Identity as ClaimsIdentity;
 
             var permissionIds = identity.FindFirst("Permissions")?.Value;
 
@@ -27,7 +29,6 @@ namespace EmailSenderApp.API.Attributes
                 context.Result = new ForbidResult();
                 return;
             }
-
         }
     }
 }

@@ -12,63 +12,60 @@ namespace EmailSenderApp.Application.Services.AuthServices
     public class AuthService : IAuthService
     {
         private readonly IConfiguration _configuration;
+        private readonly ApplicationDbContext _context;
 
-        public AuthService(IConfiguration configuration)
+        public AuthService(IConfiguration configuration, ApplicationDbContext context)
         {
             _configuration = configuration;
+            _context = context;
+
         }
 
-        public async Task<string> GenerateToken(User user)
+        public async Task<string> GenerateToken(string login, string password)
         {
-            if (user == null)
+            if (login == null || password == null)
             {
-                return "User Will be Null";
+                return "LogIn or Password is null. Please Enter Login and Password";
+
             }
-
-            if (UserExist(user))
+            if (UserExist(login, password).Result)
             {
-                var permissions = new List<int>();
-
-                if (user.Role == "Teacher")
+                var permission = new List<int>();
+                var user = await _context.Users.FirstOrDefaultAsync(x => x.Login == login);
+                if (user.Role == "Admin")
                 {
-                    permissions = new List<int>() { 1, 2, 3, 4 };
+                    permission = new List<int> { 1, 2, 3, 4, 5 };
                 }
-                else if (user.Role == "Student")
+                else
                 {
-                    permissions = new List<int>() { 5, 7, 3, 4 };
-                }
-                else if (user.Role == "Admin")
-                {
-                    permissions = new List<int>() { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
-                }
+                    permission = new List<int> { 1, 2 };
 
-                var jsonContent = JsonSerializer.Serialize(permissions);
 
+                }
+                var jsonContent = JsonSerializer.Serialize(permission);
+
+                string gu = Guid.NewGuid().ToString();
                 List<Claim> claims = new List<Claim>()
                 {
                     new Claim(ClaimTypes.Role, user.Role),
-                    new Claim("UserName", user.UserName),
-                    new Claim("UserID", user.Id.ToString()),
-                    new Claim("CreatedDate", DateTime.UtcNow.ToString()),
-                    new Claim("Permissions", jsonContent),
+                    new Claim("UserFullName", user.FullName),
+                    new Claim("TokenId", gu),
+                    new Claim("CratedDate", DateTime.UtcNow.ToString()),
+                    new Claim("Permissions", jsonContent)
+
                 };
 
                 return await GenerateToken(claims);
-            }
-            else
-            {
-                return "User UnAuthorithe 401";
-            }
 
+            }
+            else return "User UnAuthorithe 401";
         }
-
 
         public async Task<string> GenerateToken(IEnumerable<Claim> additionalClaims)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
-            var exDate = Convert.ToInt32(_configuration["JWT:ExpireDate"] ?? "10");
+            var exDate = Convert.ToInt32(_configuration["JWT:ExpireDate"] ?? "5");
 
             var claims = new List<Claim>
             {
@@ -77,29 +74,26 @@ namespace EmailSenderApp.Application.Services.AuthServices
             };
 
             if (additionalClaims?.Any() == true)
+            {
                 claims.AddRange(additionalClaims);
-
+            }
 
             var token = new JwtSecurityToken(
-                issuer: _configuration["JWT:ValidIssuer"],
-                audience: _configuration["JWT:ValidAudience"],
-                claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(exDate),
-                signingCredentials: credentials);
+            issuer: _configuration["JWT:ValidIssuer"],
+            audience: _configuration["JWT:ValidAudience"],
+            claims: claims,
+            expires: DateTime.UtcNow.AddMinutes(exDate),
+            signingCredentials: credentials);
 
             return new JwtSecurityTokenHandler().WriteToken(token);
-
-
         }
 
-        public bool UserExist(User user)
+        public async Task<bool> UserExist(string login, string password)
         {
-            var login = "admin";
-            var password = "123";
-
-            if (user.Login == login && user.Password == password)
+            var listUsers = await _context.Users.ToListAsync();
+            foreach (var user in listUsers)
             {
-                return true;
+                if (user.Login == login && user.Password == password) return true;
             }
 
             return false;

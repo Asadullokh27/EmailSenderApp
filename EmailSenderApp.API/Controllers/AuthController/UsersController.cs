@@ -1,4 +1,6 @@
 ﻿using EmailSenderApp.API.Attributes;
+using EmailSenderApp.Application.Services.Users;
+using EmailSenderApp.Domain.Entites.Models.AuthModels;
 using EmailSenderApp.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -11,43 +13,50 @@ namespace EmailSenderApp.API.Controllers.AuthController
     [Authorize]
     public class UsersController : ControllerBase
     {
-        List<string> users = new List<string>()
-        {
-            "Student 1", "" +
-            "Student 2","Student 3","Student 4","Student 5","Student 6"
-        };
 
-        List<string> teachers = new List<string>()
-        {
-            "Teacher 1", "Teacher 2","Teacher 3","Teacher 4","Teacher 5","Teacher 6"
-        };
 
-        [HttpGet]
-        [IdentityFilter(Permission.GetAllStudents)]
-        public IActionResult GetStudents()
+        private readonly IUsersService _usersService;
+
+        public UsersController(IUsersService usersService)
         {
-            return Ok(users);
+            _usersService = usersService;
         }
 
         [HttpGet]
-        [IdentityFilter(Permission.GetAllTeachers)]
-        public IActionResult GetTeachers()
+        [IdentityFilter(Permission.GetAllUsers)]
+        public Task<List<User>> GetAllUsers()
         {
-            return Ok(teachers);
+            var res = _usersService.GetAllUsers();
+            return res;
         }
-
+        [HttpGet]
+        [IdentityFilter(Permission.GetUsersById)]
+        public Task<User> GetUsersById(int id)
+        {
+            Task<User>? res = _usersService.GetUserById(id);
+            return res;
+        }
         [HttpPost]
-        [IdentityFilter(Permission.CreateStudent)]
-        public IActionResult CreateStudent()
+        [IdentityFilter(Permission.CreateUser)]
+        public Task<string> CreateUser(User user)
         {
-            return Ok("Create bo'ldi");
+            Task<string> res = _usersService.CreateUser(user);
+            return res;
+        }
+        [HttpPut]
+        [IdentityFilter(Permission.UpdateUser)]
+        public Task<string> UpdateUser(int id, User user)
+        {
+            var res = _usersService.UpdateUser(id, user);
+            return res;
+        }
+        [HttpDelete]
+        [IdentityFilter(Permission.DeleteUser)]
+        public Task<string> DeleteUser(int id)
+        {
+            Task<string> res = _usersService.DeleteUser(id);
+            return res;
         }
 
-        [HttpDelete]
-        [IdentityFilter(Permission.DeleteStudent)]
-        public IActionResult DeleteStudent()
-        {
-            return Ok("Delete bo'ldi");
-        }
     }
 }

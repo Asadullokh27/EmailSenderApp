@@ -8,15 +8,10 @@ namespace EmailSenderApp.Domain.Enums
 {
     public enum Permission
     {
-        CreateStudent = 1,
-        DeleteStudent = 2,
-        UpdateStudent = 3,
-        GetStudentById = 4,
-        GetAllStudents = 5,
-        GetAllTeachers = 6,
-        GetTeacherById = 7,
-        CreateTeacher = 8,
-        DeleteTeacher = 9,
-        UpdateTeacher = 10
+        GetAllUsers = 1,
+        GetUsersById = 2,
+        DeleteUser = 3,
+        UpdateUser = 4,
+        CreateUser = 5
     }
 }

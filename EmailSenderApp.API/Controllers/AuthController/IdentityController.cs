@@ -16,12 +16,10 @@ namespace EmailSenderApp.API.Controllers.AuthController
         }
 
         [HttpPost]
-        public IActionResult Login(User user)
+        public IActionResult Login(string login, string password)
         {
-            var result = _authService.GenerateToken(user);
-
-            return Ok(result);
+            var result = _authService.GenerateToken(login, password);
+            return Ok(result.Result);
         }
-
     }
 }

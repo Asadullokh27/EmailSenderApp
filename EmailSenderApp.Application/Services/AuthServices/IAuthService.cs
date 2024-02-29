@@ -4,6 +4,9 @@ namespace EmailSenderApp.Application.Services.AuthServices
 {
     public interface IAuthService
     {
-        public Task<string> GenerateToken(User user);
+        public interface IAuthService
+        {
+            Task<string> GenerateToken(string login, string password);
+        }
     }
 }
